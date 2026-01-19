@@ -6,26 +6,25 @@ class Routes
 {
 
     private static $routes = [
-        'usuario' => [
-            'Class' => 'HomeUsuario',
-            'Method' => [
-                'index' => 'index',
-                'perfil' => 'getPontoDay',
-                'espelho' => 'getPontoById',
-                'getPontoMonth' => 'getPontoMonth'
+        'GET' => [
+            'usuario' => [
+                'controllers' => "App\\Controllers\\Usuario",
+                'method' => [
+                    'index' => 'index',
+                    'list' => 'ListPontos',
+                    'perfil' => 'Perfil',
+                    'sair' => 'Sair',
+                ],
+            ],
+        ],
+
+        'GET' => [
+            'usuario' => [
+                'controllers' => 'App\\Controllers\\Usuario',
+                'method' => [
+                    'create' => 'CreatePontos'
+                ]
             ]
-        ],
-        'login' => [
-            'Class' => 'Login',
-            'Method' => 'authenticate'
-        ],
-        'logout' => [
-            'Class' => 'AuthController',
-            'Method' => 'logout'
-        ],
-        'dashboard' => [
-            'Class' => 'DashboardController',
-            'Method' => 'index'
         ]
     ];
 
@@ -37,38 +36,16 @@ class Routes
 
     public static function get($path)
     {
-        $url = explode('/', $path) ?? '/';
+        $url = explode('/', rtrim($path, '/'));
 
-        if (isset($url[1])) {
-        }
+        $class = $url[2] ?? 'erro';
+        $method = $url[3] ?? 'index';
 
-        $className = isset(self::$routes[$url[2]])
-            ? 'App\\Controllers\\' . self::$routes[$url[2]]['Class']
-            : $url[2];
+        $controler = self::$routes[$_SERVER['REQUEST_METHOD']][$class]['controllers'];
+        $methods = self::$routes[$_SERVER['REQUEST_METHOD']][$class]['method'][$method];
 
-        if (!class_exists($className)) {
-            $erro = self::erro($url);
-            echo $erro;
-            return;
-        }
+        (new $controler())->{$methods}();
 
-        $methodName = isset($url[3]) && isset(self::$routes[$url[2]]['Method'][$url[3]])
-            ? self::$routes[$url[2]]['Method'][$url[3]]
-            : 'index';
-
-        if (!method_exists($className, $methodName)) {
-            $erro = self::erro($url);
-            echo $erro;
-            return;
-        }
-
-        if (!method_exists($className, $methodName)) {
-            $erro = self::erro($url);
-            echo $erro;
-            return;
-        }
-
-        (new $className())->$methodName();
     }
 
     private static function erro($params)
